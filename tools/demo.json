@@ -1,0 +1,8 @@
+{
+  "title": "dmaguard — DMA / IOMMU attack-surface audit (demo fixture)",
+  "prompt": {"user": "grimh3xx@dmaguard", "path": "~/dmaguard"},
+  "steps": [
+    {"show": "dmaguard --root fx/laptop",
+     "run": "ln -sfn tests/fixtures fx && ./target/release/dmaguard --root fx/laptop; rm -f fx", "chunk": 2, "hold": 70}
+  ]
+}

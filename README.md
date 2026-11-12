@@ -12,6 +12,11 @@ question. It parses the firmware's ACPI **DMAR** (Intel VT-d) and **IVRS**
 **Kernel DMA Protection** on Windows; IOMMU domains, boot parameters,
 **Thunderbolt security levels** and external PCIe devices on Linux.
 
+
+<p align="center"><img src="docs/demo.svg" alt="dmaguard demo" width="100%"></p>
+
+<sub>Recorded from real output against `tests/fixtures/laptop` (Thunderbolt security `none`, `iommu=pt`, DMAR without the DMA opt-in) built by `tools/make_fixture.py`. Regenerate with `python3 tools/gen_demo.py`.</sub>
+
 ## Findings
 
 | ID | Severity | Finding |
@@ -39,6 +44,31 @@ unprotected. Kernel DMA Protection, as msinfo32 shows it, is
 `SystemDmaGuardPolicyInformation`. dmaguard reads both and explains the gap.
 On real hardware, a set IOMMU flag together with Kernel DMA Protection Off
 traced back to the firmware's IVRS opt-in bit being clear.
+
+## Install
+
+**Pre-built binaries** (from [Releases](https://github.com/grimh3xx/dmaguard/releases/latest)):
+
+```sh
+# Linux x64
+curl -fsSL -o dmaguard https://github.com/grimh3xx/dmaguard/releases/latest/download/dmaguard-linux-x64
+chmod +x dmaguard && sudo mv dmaguard /usr/local/bin/
+```
+
+```powershell
+# Windows x64 (PowerShell)
+iwr https://github.com/grimh3xx/dmaguard/releases/latest/download/dmaguard-windows-x64.exe -OutFile dmaguard.exe
+.\dmaguard.exe --help
+```
+
+**From source** (Rust 1.82+):
+
+```sh
+cargo install --git https://github.com/grimh3xx/dmaguard
+```
+
+Linux needs root to read the ACPI DMAR/IVRS tables. The binaries are not code-signed, so SmartScreen or Defender may flag
+them heuristically. Build from source if you prefer to verify.
 
 ## Usage
 

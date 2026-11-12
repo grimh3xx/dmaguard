@@ -248,6 +248,20 @@ fn render_firmware(fw: &Firmware) {
     }
 }
 
+/// One-line rendering of a JSON value: strings bare, objects as `k=v`.
+fn compact(v: &serde_json::Value) -> String {
+    match v {
+        serde_json::Value::String(t) => t.clone(),
+        serde_json::Value::Object(o) => o
+            .iter()
+            .filter(|(_, x)| !x.is_null())
+            .map(|(k, x)| format!("{k}={}", compact(x)))
+            .collect::<Vec<_>>()
+            .join(" "),
+        other => other.to_string(),
+    }
+}
+
 fn render_os(s: &serde_json::Value) {
     report::section("operating system");
     let Some(obj) = s.as_object() else { return };
@@ -256,15 +270,7 @@ fn render_os(s: &serde_json::Value) {
             serde_json::Value::Null => continue,
             serde_json::Value::Bool(b) => flag(*b),
             serde_json::Value::Array(a) if a.is_empty() => "none".dimmed().to_string(),
-            serde_json::Value::Array(a) => a
-                .iter()
-                .map(|x| {
-                    x.as_str()
-                        .map(str::to_string)
-                        .unwrap_or_else(|| x.to_string())
-                })
-                .collect::<Vec<_>>()
-                .join(", "),
+            serde_json::Value::Array(a) => a.iter().map(compact).collect::<Vec<_>>().join(" | "),
             serde_json::Value::Object(o) if o.is_empty() => "—".dimmed().to_string(),
             serde_json::Value::Object(o) => o
                 .iter()
