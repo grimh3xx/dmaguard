@@ -52,7 +52,10 @@ def main():
     w("sys/bus/thunderbolt/devices/0-1/vendor_name", "Contoso\n")
     w("sys/bus/thunderbolt/devices/0-1/device_name", "TB4 Dock\n")
     w("sys/bus/thunderbolt/devices/0-1/authorized", "1\n")
-    dev = "sys/bus/pci/devices/0000:3c:00.0"
+    # Real sysfs names this directory 0000:3c:00.0; ':' is invalid on NTFS,
+    # so the snapshot uses a neutral name and the address lives in uevent.
+    dev = "sys/bus/pci/devices/dock-nic"
+    w(f"{dev}/uevent", "DRIVER=igc\nPCI_CLASS=20000\nPCI_SLOT_NAME=0000:3c:00.0\n")
     w(f"{dev}/removable", "removable\n")
     w(f"{dev}/vendor", "0x8086\n")
     w(f"{dev}/device", "0x15f2\n")

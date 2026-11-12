@@ -139,7 +139,14 @@ pub fn collect(root: &Path) -> LinuxState {
         };
         if r("removable").as_deref() == Some("removable") {
             s.removable_pci.push(PciDev {
-                address: name(&d),
+                // uevent carries the canonical address; the directory name is
+                // the same on a live system but may differ in snapshots.
+                address: r("uevent")
+                    .and_then(|u| {
+                        u.lines()
+                            .find_map(|l| l.strip_prefix("PCI_SLOT_NAME=").map(str::to_string))
+                    })
+                    .unwrap_or_else(|| name(&d)),
                 vendor: r("vendor").unwrap_or_default(),
                 device: r("device").unwrap_or_default(),
                 class: r("class").unwrap_or_default(),
@@ -188,8 +195,12 @@ mod tests {
         );
         w("sys/bus/thunderbolt/devices/0-1/vendor_name", "Dock Co\n");
         w("sys/bus/thunderbolt/devices/0-1/authorized", "1\n");
-        w("sys/bus/pci/devices/0000:05:00.0/removable", "removable\n");
-        w("sys/bus/pci/devices/0000:05:00.0/vendor", "0x8086\n");
+        w("sys/bus/pci/devices/ext0/removable", "removable\n");
+        w("sys/bus/pci/devices/ext0/vendor", "0x8086\n");
+        w(
+            "sys/bus/pci/devices/ext0/uevent",
+            "PCI_SLOT_NAME=0000:05:00.0\n",
+        );
         let s = collect(&root);
         assert_eq!(s.iommu_units, vec!["dmar0"]);
         assert_eq!(s.iommu_groups, 2);
